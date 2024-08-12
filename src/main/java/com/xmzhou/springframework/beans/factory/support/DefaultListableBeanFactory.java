@@ -1,0 +1,28 @@
+package com.xmzhou.springframework.beans.factory.support;
+
+import com.xmzhou.springframework.beans.BeansException;
+import com.xmzhou.springframework.beans.factory.config.BeanDefinition;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Description:
+ * Author: Xianming Zhou
+ * CreateTime: 2024/8/11 19:18
+ */
+public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFactory implements BeanDefinitionRegistry {
+    private Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
+
+    @Override
+    protected BeanDefinition getBeanDefinition(String beanName) {
+        BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
+        if (beanDefinition == null) throw new BeansException("No bean named '" + beanName + "' is defined");
+        return beanDefinition;
+    }
+
+    @Override
+    public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition) {
+        beanDefinitionMap.put(beanName, beanDefinition);
+    }
+}
