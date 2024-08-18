@@ -4,8 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.xmzhou.springframework.beans.BeansException;
 import com.xmzhou.springframework.beans.PropertyValue;
 import com.xmzhou.springframework.beans.PropertyValues;
-import com.xmzhou.springframework.beans.factory.DisposableBean;
-import com.xmzhou.springframework.beans.factory.InitializingBean;
+import com.xmzhou.springframework.beans.factory.*;
 import com.xmzhou.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import com.xmzhou.springframework.beans.factory.config.BeanDefinition;
 import com.xmzhou.springframework.beans.factory.config.BeanPostProcessor;
@@ -32,7 +31,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             bean = createBeanInstance(beanName, beanDefinition, args);
             // 填充属性
             applyPropertyValues(beanName, bean, beanDefinition);
-
+            // 执行 Bean 的初始化方法和 BeanPostProcessor 的前置和后置处理方法
             bean = initializeBean(beanName, bean, beanDefinition);
         } catch (Exception e) {
             throw new BeansException("Instantiation of bean failed", e);
@@ -50,6 +49,19 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     }
 
     private Object initializeBean(String beanName, Object bean, BeanDefinition beanDefinition) {
+
+        if (bean instanceof Aware){
+            if (bean instanceof BeanFactoryAware){
+                ((BeanFactoryAware) bean).setBeanFactory(this);
+            }
+            if (bean instanceof BeanClassLoaderAware){
+                ((BeanClassLoaderAware) bean).setBeanClassLoader(getBeanClassLoader());
+            }
+            if (bean instanceof BeanNameAware){
+                ((BeanNameAware) bean).setBeanName(beanName);
+            }
+        }
+
         // 1. 执行 BeanPostProcessor Before处理
         Object wrappedBean = applyBeanPostProcessorsBeforeInitialization(bean, beanName);
         try {
