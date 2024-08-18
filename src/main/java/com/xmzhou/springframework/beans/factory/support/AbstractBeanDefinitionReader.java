@@ -1,8 +1,6 @@
 package com.xmzhou.springframework.beans.factory.support;
 
-import com.xmzhou.springframework.beans.BeansException;
 import com.xmzhou.springframework.core.io.DefaultResourceLoader;
-import com.xmzhou.springframework.core.io.Resource;
 import com.xmzhou.springframework.core.io.ResourceLoader;
 
 /**
@@ -10,11 +8,11 @@ import com.xmzhou.springframework.core.io.ResourceLoader;
  * Author: Xianming Zhou
  * CreateTime: 2024/8/14 14:49
  */
-public abstract class AbstractBeanDefinitionReader implements BeanDefinitionReader{
+public abstract class AbstractBeanDefinitionReader implements BeanDefinitionReader {
 
     private final BeanDefinitionRegistry registry;
 
-    private ResourceLoader resourceLoader;
+    private final ResourceLoader resourceLoader;
 
     protected AbstractBeanDefinitionReader(BeanDefinitionRegistry registry) {
         this(registry, new DefaultResourceLoader());

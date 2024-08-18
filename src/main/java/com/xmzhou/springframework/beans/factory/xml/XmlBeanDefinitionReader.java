@@ -34,24 +34,32 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
     @Override
     public void loadBeanDefinitions(Resource resource) throws BeansException {
-        try {
-            try (InputStream inputStream = resource.getInputStream()) {
-//                doLoadBeanDefinitions(inputStream);
-            }
-        } catch (IOException e) {
+        try (InputStream inputStream = resource.getInputStream()) {
+            doLoadBeanDefinitions(inputStream);
+        } catch (IOException | ClassNotFoundException e) {
             throw new BeansException("IOException parsing XML document from " + resource, e);
         }
-
     }
 
     @Override
     public void loadBeanDefinitions(Resource... resources) throws BeansException {
-
+        for (Resource resource : resources) {
+            loadBeanDefinitions(resource);
+        }
     }
 
     @Override
     public void loadBeanDefinitions(String location) throws BeansException {
+        ResourceLoader resourceLoader = getResourceLoader();
+        Resource resource = resourceLoader.getResource(location);
+        loadBeanDefinitions(resource);
+    }
 
+    @Override
+    public void loadBeanDefinitions(String... locations) throws BeansException {
+        for (String location : locations) {
+            loadBeanDefinitions(location);
+        }
     }
 
     protected void doLoadBeanDefinitions(InputStream inputStream) throws ClassNotFoundException {
