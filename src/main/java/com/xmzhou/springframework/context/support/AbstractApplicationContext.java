@@ -5,9 +5,15 @@ import com.xmzhou.springframework.beans.factory.ApplicationContextAwareProcessor
 import com.xmzhou.springframework.beans.factory.ConfigurableListableBeanFactory;
 import com.xmzhou.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import com.xmzhou.springframework.beans.factory.config.BeanPostProcessor;
+import com.xmzhou.springframework.context.ApplicationEvent;
+import com.xmzhou.springframework.context.ApplicationListener;
 import com.xmzhou.springframework.context.ConfigurableApplicationContext;
+import com.xmzhou.springframework.context.event.ApplicationEventMulticaster;
+import com.xmzhou.springframework.context.event.ContextRefreshedEvent;
+import com.xmzhou.springframework.context.event.SimpleApplicationEventMulticaster;
 import com.xmzhou.springframework.core.io.DefaultResourceLoader;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -16,6 +22,10 @@ import java.util.Map;
  * CreateTime: 2024/8/14 16:46
  */
 public abstract class AbstractApplicationContext extends DefaultResourceLoader implements ConfigurableApplicationContext {
+
+    public static final String APPLICATION_EVENT_MULTICASTER_BEAN_NAME = "applicationEventMulticaster";
+    private ApplicationEventMulticaster applicationEventMulticaster;
+
 
     @Override
     public void refresh() throws BeansException {
@@ -31,8 +41,35 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader i
         registerBeanPostProcessors(beanFactory);
         // 6. 提前实例化单例Bean对象
         beanFactory.preInstantiateSingletons();
+        // 7. 初始化事件发布者
+        initApplicationEventMulticaster();
+        // 8. 注册事件监听器
+        registerListeners();
+        // 9. 发布容器刷新完成事件
+        finishRefresh();
     }
 
+    private void finishRefresh() {
+        publishEvent(new ContextRefreshedEvent(this));
+    }
+
+    @Override
+    public void publishEvent(ApplicationEvent event) {
+        applicationEventMulticaster.multicastEvent(event);
+    }
+
+    private void initApplicationEventMulticaster() {
+        ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+        applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
+        beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, applicationEventMulticaster);
+    }
+
+    private void registerListeners() {
+        Collection<ApplicationListener> applicationListeners = getBeansOfType(ApplicationListener.class).values();
+        for (ApplicationListener listener : applicationListeners) {
+            applicationEventMulticaster.addApplicationListener(listener);
+        }
+    }
 
     @Override
     public void registerShutdownHook() {
