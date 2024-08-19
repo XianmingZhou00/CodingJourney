@@ -11,5 +11,7 @@ public interface FactoryBean<T> {
 
     Class<?> getObjectType();
 
-    boolean isSingleton();
+    default boolean isSingleton(){
+        return true;
+    }
 }
